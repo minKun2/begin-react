@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import UserList from './UserList';
 import CreateUser from './CreateUser';
 
@@ -43,31 +43,38 @@ function App() {
   ]);
 
   const nextId = useRef(4);
-  const onCreate = () => {
+  const onCreate = useCallback(() => {
     const user = {
       id: nextId.current,
       username,
       email
     };
-    setUsers(users.concat(user));
+    setUsers(user.concat(user));
 
     setInputs({
-      usernaem: '',
-      email: ''
+      username:'',
+      email:''
     });
     nextId.current += 1;
-  };
-  const onRemove = id => {
-    setUsers(users.filter(user => user.id !== id));
-  };
-  const onToggle = id => {
+  }, [users, username, email]);
+
+  const onRemove = useCallback (
+  id => {
+  setUsers(users.filter(user => user.id !== id));
+  },
+  [users]
+  );
+  const onToggle = useCallback( 
+  id => {
     setUsers(
       users.map(user =>
         user.id === id ? { ...user, active: !user.active } : user
       )
     );
-  }
-  const count = countActiveUsers(users);
+  },
+  [users]
+  );
+  const count = useMemo(() => countActiveUsers(users), [users]);
   return (
     <>
       <CreateUser
@@ -76,7 +83,7 @@ function App() {
         onChange={onChange}
         onCreate={onCreate}
       />
-      <UserList users={users}  onRemove={onRemove} onToggle={onToggle}/>
+      <UserList users={users}  onRemove={onRemove} onToggle={onToggle} />
       <div>활성사용자 수 : {count}</div>
     </>
   );
